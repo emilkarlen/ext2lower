@@ -1,5 +1,5 @@
 no-ext NOEXT
-lower-ext a.ext a.ext
+lower-ext a.ext
 upper-ext b.EXT b.ext
 mixed-ext c.Ext c.ext
 multi-ext d.NONLASTEXT.LASTEXT d.NONLASTEXT.lastext
