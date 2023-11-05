@@ -1,0 +1,30 @@
+[cases]
+
+*.case
+
+[setup]
+
+including ../common.xly
+
+def string FN = name-wo-ext
+
+def files-source FILES =
+{
+  file @[FN]@
+}
+
+def files-matcher MATCHES_ORIGINAL_FILES = matches -full
+{
+  @[FN]@ : @[IS_EMPTY_FILE]@
+}
+
+def string ORIGINAL_FILE_LIST =
+<<EOF
+@[FN]@
+EOF
+
+def text-matcher MATCHES_ORIGINAL_FILE_LIST_OUTPUT =
+
+  equals @[ORIGINAL_FILE_LIST]@
+
+def string SUB_DIR = subdir.UPCASEEXT

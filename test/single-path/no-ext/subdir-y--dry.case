@@ -1,0 +1,24 @@
+[act]
+
+@ BIN_DRY
+
+[setup]
+
+including subdir-y.setup
+
+[assert]
+
+exit-code == 0
+
+dir-contents . : matches -full
+{
+  @[SUB_DIR]@ : type dir && dir-contents @[MATCHES_ORIGINAL_FILES]@
+}
+
+stdout is-empty
+
+stderr
+  equals
+    @[ORIGINAL_FILE_LIST]@
+  -transformed-by
+    run @ PREPEND @[SUB_DIR]@/

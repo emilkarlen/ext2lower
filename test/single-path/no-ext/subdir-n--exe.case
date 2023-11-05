@@ -1,0 +1,17 @@
+[act]
+
+@ BIN_EXE
+
+[setup]
+
+including subdir-n.setup
+
+[assert]
+
+exit-code == 0
+
+dir-contents . : @[MATCHES_ORIGINAL_FILES]@
+
+stderr is-empty
+
+stdout @[MATCHES_ORIGINAL_FILE_LIST_OUTPUT]@

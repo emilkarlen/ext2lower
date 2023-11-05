@@ -1,0 +1,8 @@
+[setup]
+
+def program BIN = $ echo todo >&2; exit 1
+
+def program BIN_EXE = @ BIN
+def program BIN_DRY = @ BIN
+
+def file-matcher IS_EMPTY_FILE = type file && contents is-empty

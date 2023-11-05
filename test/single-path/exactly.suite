@@ -1,0 +1,11 @@
+[suites]
+
+non-existing
+no-ext
+ext-lower
+ext-mixed
+ext-upper
+
+[setup]
+
+including ../common.xly
