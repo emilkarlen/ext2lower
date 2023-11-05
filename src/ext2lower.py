@@ -32,12 +32,34 @@ def main():
         exit_failure('Unknown command: ' + cmd)
 
 
+class Reporter:
+    def __init__(self, channel):
+        self._channel = channel
+
+    def report(self, src: str, dst: Optional[str]):
+        self._channel.write(src + '\n')
+
+
 def _cli_execute():
-    exit_failure('execute: todo')
+    reporter = Reporter(sys.stdout)
+    _do_it(reporter)
+    _cli_dry()
 
 
 def _cli_dry():
-    exit_failure('execute: todo')
+    reporter = Reporter(sys.stderr)
+    _do_it(reporter)
+
+
+def _do_it(reporter: Reporter):
+    for path_str in sys.stdin.readlines():
+        src_path = path_str.strip()
+        dst_path = rename(src_path)
+        reporter.report(str(src_path), dst_path)
+
+
+def rename(src: str) -> Optional[str]:
+    return None
 
 
 def log(msg):
