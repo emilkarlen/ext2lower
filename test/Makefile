@@ -1,7 +1,6 @@
 .PHONY: all clean
 
-all:
-	 echo "todo"
+all: multi ind
 
 ind:
 	python3 cases-gen/genrator.py individual cases-gen single-path
