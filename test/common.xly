@@ -1,10 +1,10 @@
 [conf]
 
-act-home = ../src
+act-home = ../out
 
 [setup]
 
-def program BIN = -python @[EXACTLY_ACT_HOME]@/ext2lower.py
+def program BIN = @[EXACTLY_ACT_HOME]@/ext2lower
 
 def program BIN_EXE = @ BIN x
 def program BIN_DRY = @ BIN d
