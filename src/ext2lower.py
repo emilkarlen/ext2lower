@@ -36,8 +36,8 @@ class Reporter:
     def __init__(self, channel):
         self._channel = channel
 
-    def report(self, src: str, dst: Optional[str]):
-        self._channel.write(src + '\n')
+    def report(self, src: Path, dst: Optional[Path]):
+        self._channel.write(str(src) + '\n')
 
 
 def _cli_execute():
@@ -53,13 +53,20 @@ def _cli_dry():
 
 def _do_it(reporter: Reporter):
     for path_str in sys.stdin.readlines():
-        src_path = path_str.strip()
-        dst_path = rename(src_path)
-        reporter.report(str(src_path), dst_path)
+        src_path = Path(path_str.strip())
+        if not src_path.exists():
+            exit_failure('File does not exist: {}'.format(src_path))
+        dst_path = new_name(src_path)
+        reporter.report(src_path, dst_path)
 
 
-def rename(src: str) -> Optional[str]:
-    return None
+def new_name(src: Path) -> Optional[Path]:
+    suffix = src.suffix
+    suffix_lower = suffix.lower()
+    if suffix != suffix_lower:
+        return src.with_suffix(suffix_lower)
+    else:
+        return None
 
 
 def log(msg):
