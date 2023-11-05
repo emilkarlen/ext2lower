@@ -3,3 +3,5 @@ lower-ext a.ext a.ext
 upper-ext b.EXT b.ext
 mixed-ext c.Ext c.ext
 multi-ext d.NONLASTEXT.LASTEXT d.NONLASTEXT.lastext
+dot-just-head  .head
+dot-w-ext      .head.DOTEXT .head.dotext
