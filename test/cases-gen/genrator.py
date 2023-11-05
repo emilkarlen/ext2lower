@@ -8,7 +8,11 @@ CASES_FILE = 'cases.txt'
 TEMPLATE_DIR = 'template'
 
 SUB_DIR_SYMBOL = 'SUB_DIR'
+
 DEFINITIONS_FILE_NAME = 'defs.xly'
+
+SUITES_FILE_NAME = 'exactly.suite'
+COMMON_FILE_NAME = 'common.xly'
 
 def exit_failure(msg: str):
     print(msg, file=sys.stderr)
@@ -97,6 +101,14 @@ class RenamedFilesFormatter:
         )
 
 
+class SuiteListFormatter:
+    def __init__(self, suites: Sequence[str]):
+        self._suites = suites
+
+    def __format__(self, format_spec):
+        return '\n'.join(self._suites)
+
+
 def in_subdir(subdir: str, fn: FileName) -> FileName:
     def sub(d: str, f: str) -> str:
         return str(Path(d) / f)
@@ -143,12 +155,16 @@ def main():
     if len(sys.argv) < 2:
         exit_failure(usage())
     cmd = sys.argv[1]
-    if cmd == 'defs':
+    if cmd in ['-h', '--help']:
+        print(usage())
+    elif cmd == 'defs':
         _cli_definitions(sys.argv[2:])
     elif cmd == 'all':
         _cli_all(sys.argv[2:])
+    elif cmd == 'individual':
+        _cli_individual(sys.argv[2:])
     else:
-        exit_failure(usage())
+        exit_failure('Unknown command: ' + cmd)
 
 
 def _cli_definitions(args: Sequence[str]):
@@ -164,6 +180,28 @@ def _cli_definitions(args: Sequence[str]):
 def _cli_all(args: Sequence[str]):
     if len(args) != 2:
         exit_failure(usage())
+    cases_file, template_dir = _parse_setup_files(args)
+
+    dst_dir = Path(args[1])
+    if dst_dir.exists():
+        exit_failure('DST-DIR: Must not be an existing file: ' + str(template_dir))
+
+    _do_all(cases_file, template_dir, dst_dir)
+
+
+def _cli_individual(args: Sequence[str]):
+    if len(args) != 2:
+        exit_failure('individual: Invalid args')
+    cases_file, template_dir = _parse_setup_files(args)
+
+    dst_dir = Path(args[1])
+    if dst_dir.exists():
+        exit_failure('DST-DIR: Must not exist: ' + str(template_dir))
+
+    _do_individual(cases_file, template_dir, dst_dir)
+
+
+def _parse_setup_files(args: Sequence[str]) -> Tuple[Path, Path]:
     setup_dir = Path(args[0])
     cases_file = setup_dir / CASES_FILE
     template_dir = setup_dir / TEMPLATE_DIR
@@ -172,11 +210,7 @@ def _cli_all(args: Sequence[str]):
     if not template_dir.is_dir():
         exit_failure('TEMPLATE-DIR: Not a dir: ' + str(template_dir))
 
-    dst_dir = Path(args[1])
-    if dst_dir.exists():
-        exit_failure('DST-DIR: Must not be an existing file: ' + str(template_dir))
-
-    _do_all(cases_file, template_dir, dst_dir)
+    return cases_file, template_dir
 
 
 def _do_definitions(cases_file: Path):
@@ -187,15 +221,50 @@ def _do_definitions(cases_file: Path):
 
 def _do_all(cases_file: Path, tmpl_dir: Path, dst_dir: Path):
     cases = read_cases(cases_file)
-    definitions_text = definitions(list(cases.values()))
+    _mk_xly_dir(dst_dir, tmpl_dir, list(cases.values()))
+
+
+def _do_individual(cases_file: Path, tmpl_dir: Path, dst_dir: Path):
+    cases = read_cases(cases_file)
+    log('Creating DST-DIR: {}'.format(dst_dir))
+    dst_dir.mkdir()
+    for case_name, file_name in cases.items():
+        log('Generating variant: ' + case_name)
+        _mk_xly_dir(dst_dir / case_name, tmpl_dir, [file_name])
+
+    suite_file = dst_dir / SUITES_FILE_NAME
+    log('Creating suite: {}'.format(suite_file))
+    suite_file.write_text(XLY_SUITE__INDIVIDUAL.format(
+        SUITE_LIST=SuiteListFormatter(list(cases.keys()))
+    ))
+
+    common_file = dst_dir / COMMON_FILE_NAME
+    log('Creating: {}'.format(common_file))
+    common_file.write_text(COMMON_FILE__INDIVIDUAL)
+
+
+def _mk_xly_dir(dst_dir: Path, tmpl_dir: Path, variants: Sequence[FileName]):
+    definitions_text = definitions(variants)
     log('Copying template dir')
     shutil.copytree(tmpl_dir, dst_dir)
     definitions_path = dst_dir / DEFINITIONS_FILE_NAME
     log('Writing definitions file {}'.format(definitions_path))
     definitions_path.write_text(definitions_text)
 
+
 def log(msg):
     print(msg, file=sys.stderr)
+
+
+XLY_SUITE__INDIVIDUAL = """\
+[suites]
+
+{SUITE_LIST}
+"""
+
+COMMON_FILE__INDIVIDUAL = """\
+including ../common.xly
+"""
 
 DEFINITIONS = """\
 # Generated {GENERATION_TIME_STAMP}
@@ -249,9 +318,20 @@ def usage() -> str:
 _USAGE = """\
 COMMANDS
   defs CASES-FILE
+  
     Print contents of defs.xly on stdout
   
   all  SETUP-DIR DST-DIR
+  
+    Creates an Exactly suite in DST-DIR representing cases for all renaming variants.
+    
+    DST-DIR must not exist.
+  
+  individual SETUP-DIR DST-DIR
+  
+    Creates directories in DST-DIR representing individual renaming variants.
+    
+    DST-DIR must exist as a directory.
 
 SETUP-DIR
   An directory containing:
