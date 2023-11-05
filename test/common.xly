@@ -1,8 +1,12 @@
+[conf]
+
+act-home = ../src
+
 [setup]
 
-def program BIN = $ echo todo >&2; exit 1
+def program BIN = -python @[EXACTLY_ACT_HOME]@/ext2lower.py
 
-def program BIN_EXE = @ BIN
-def program BIN_DRY = @ BIN
+def program BIN_EXE = @ BIN x
+def program BIN_DRY = @ BIN d
 
 def file-matcher IS_EMPTY_FILE = type file && contents is-empty
