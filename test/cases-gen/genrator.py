@@ -14,6 +14,7 @@ DEFINITIONS_FILE_NAME = 'defs.xly'
 SUITES_FILE_NAME = 'exactly.suite'
 COMMON_FILE_NAME = 'common.xly'
 
+
 def exit_failure(msg: str):
     print(msg, file=sys.stderr)
     sys.exit(1)
@@ -59,6 +60,8 @@ class FileNameRenamingsFormatter:
             [self._format_file_name(fn) for fn in self._file_names]
         )
 
+def str_lit(s: str) -> str:
+    return '\'' + s + '\''
 
 class FilesFormatter:
     def __init__(self, file_names: Sequence[FileName]):
@@ -66,7 +69,7 @@ class FilesFormatter:
 
     @staticmethod
     def _format_file_name(file_name: FileName):
-        return '  file {}'.format(file_name.original)
+        return '  file {}'.format(str_lit(file_name.original))
 
     def __format__(self, format_spec):
         return '\n'.join(
@@ -75,7 +78,7 @@ class FilesFormatter:
 
 
 def is_empty_file_matcher(file_name: str) -> str:
-    return '  {} : type file && contents is-empty'.format(file_name)
+    return '  {} : type file && contents is-empty'.format(str_lit(file_name))
 
 
 class OriginalFilesFormatter:
@@ -138,7 +141,7 @@ def definitions(file_names: Sequence[FileName]) -> str:
 
 def read_cases(path: Path) -> Dict[str, FileName]:
     def parse_line(s: str) -> Tuple[str, FileName]:
-        parts = s.split()
+        parts = s.split('/')
         if len(parts) == 2:
             return parts[0], FileName(parts[1], None)
         else:
